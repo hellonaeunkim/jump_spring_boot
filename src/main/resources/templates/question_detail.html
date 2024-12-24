@@ -65,30 +65,44 @@
             </div>
 
             <!--댓글 Table-->
-            <table class="table" th:if="${#lists.size(question.commentList)!=0}" style="display: none"
-                   th:id="|comment-question-${question.id}|">
-                <thead class="table-dark">
-                <tr class="text-center">
-                    <th style="width:70%">내용</th>
-                    <th>글쓴이</th>
-                    <th>작성일시</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr class="text-center" th:each="question_comment, loop : ${comment_list}"
-                    th:if="${question_comment.getAnswer() == null}">
-                    <td class="text-center" th:text="${question_comment.getContent()}"></td>
-                    <td><span th:if="${question_comment.author != null}" th:text="${question_comment.author.username}"
-                    </td>
-                    <span th:text="${#temporals.format(question_comment.createDate, 'yyyy-MM-dd HH:mm')}"></span>
-                    <a th:href="@{|/comment/delete/${question_comment.id}|}" sec:authorize="isAuthenticated()"
-                       th:if="${question_comment.author != null and #authentication.getPrincipal().getUsername() == question_comment.author.username}">
-                        <img src="/images/erase_button.png"/>
-                    </a>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+            <div style="display: none"
+                 th:id="|comment-question-${question.id}|">
+                <table class="table" th:if="${#lists.size(question.commentList)!=0}">
+                    <thead class="table-dark">
+                    <tr class="text-center">
+                        <th style="width:70%">내용</th>
+                        <th>글쓴이</th>
+                        <th>작성일시</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="text-center" th:each="question_comment, loop : ${comment_list}"
+                        th:if="${question_comment.getAnswer() == null}">
+                        <td class="text-center" th:text="${question_comment.getContent()}"></td>
+                        <td><span th:if="${question_comment.author != null}"
+                                  th:text="${question_comment.author.username}"
+                        </td>
+                        <span th:text="${#temporals.format(question_comment.createDate, 'yyyy-MM-dd HH:mm')}"></span>
+                        <a th:href="@{|/comment/delete/${question_comment.id}|}" sec:authorize="isAuthenticated()"
+                           th:if="${question_comment.author != null and #authentication.getPrincipal().getUsername() == question_comment.author.username}">
+                            <img src="/images/erase_button.png"/>
+                        </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <!-- 질문 댓글 작성 -->
+                <form th:action="@{|/comment/create/question/${question.id}|}" th:object="${commentForm}" method="post"
+                      class="my-3">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <div th:replace="~{form_errors :: formErrorsFragment}"></div>
+                    <textarea sec:authorize="isAnonymous()" disabled th:field="*{content}" class="form-control"
+                              rows="10"></textarea>
+                    <textarea sec:authorize="isAuthenticated()" th:field="*{content}" class="form-control"
+                              rows="10"></textarea>
+                    <input type="submit" value="댓글 등록" class="btn btn-primary my-2">
+                </form>
+            </div>
         </div>
     </div>
 
@@ -166,7 +180,7 @@
                        th:if="${answer.author != null and #authentication.getPrincipal().getUsername() == answer.author.username}"
                        th:text="삭제"></a>
                 </div>
-                <!-- 오른쪽 버튼 -->
+                <!-- Answer 오른쪽 버튼 -->
                 <a href="javascript:void(0);" class="comment btn btn-sm btn-outline-secondary"
                    th:id="|ans-${answer.id}|" th:text="|댓글 ${#lists.size(answer.getCommentList())}|">
                 </a>
@@ -174,29 +188,43 @@
         </div>
 
         <!--댓글 테이블-->
-        <table class="table" th:if="${#lists.size(answer.commentList)!=0}" style="display: none"
-               th:id="|comment-ans-${answer.id}|">
-            <thead class="table-dark">
-            <tr class="text-center">
-                <th style="width:70%">내용</th>
-                <th>글쓴이</th>
-                <th>작성일시</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr class="text-center" th:each="answer_comment, loop : ${comment_list}"
-                th:if="${answer_comment.getAnswer() != null and answer_comment.getAnswer().getId() == answer.getId()}">
-                <td class="text-center" th:text="${answer_comment.getContent()}"></td>
-                <td><span th:if="${answer_comment.author != null}" th:text="${answer_comment.author.username}"</td>
-                <span th:text="${#temporals.format(answer_comment.createDate, 'yyyy-MM-dd HH:mm')}"></span>
-                <a th:href="@{|/comment/delete/${answer_comment.id}|}" sec:authorize="isAuthenticated()"
-                   th:if="${answer_comment.author != null and #authentication.getPrincipal().getUsername() == answer_comment.author.username}">
-                    <img src="/images/erase_button.png"/>
-                </a>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <div style="display: none"
+             th:id="|comment-ans-${answer.id}|">
+            <table class="table" th:if="${#lists.size(answer.commentList)!=0}">
+                <thead class="table-dark">
+                <thead class="table-dark">
+                <tr class="text-center">
+                    <th style="width:70%">내용</th>
+                    <th>글쓴이</th>
+                    <th>작성일시</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="text-center" th:each="answer_comment, loop : ${comment_list}"
+                    th:if="${answer_comment.getAnswer() != null and answer_comment.getAnswer().getId() == answer.getId()}">
+                    <td class="text-center" th:text="${answer_comment.getContent()}"></td>
+                    <td><span th:if="${answer_comment.author != null}" th:text="${answer_comment.author.username}"</td>
+                    <span th:text="${#temporals.format(answer_comment.createDate, 'yyyy-MM-dd HH:mm')}"></span>
+                    <a th:href="@{|/comment/delete/${answer_comment.id}|}" sec:authorize="isAuthenticated()"
+                       th:if="${answer_comment.author != null and #authentication.getPrincipal().getUsername() == answer_comment.author.username}">
+                        <img src="/images/erase_button.png"/>
+                    </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <!-- 질문 댓글 작성 -->
+            <form th:action="@{|/comment/create/answer/${answer.id}|}" th:object="${commentForm}" method="post"
+                  class="my-3">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div th:replace="~{form_errors :: formErrorsFragment}"></div>
+                <textarea sec:authorize="isAnonymous()" disabled th:field="*{content}" class="form-control"
+                          rows="10"></textarea>
+                <textarea sec:authorize="isAuthenticated()" th:field="*{content}" class="form-control"
+                          rows="10"></textarea>
+                <input type="submit" value="댓글 등록" class="btn btn-primary my-2">
+            </form>
+        </div>
     </div>
     <!-- 답변 반복 끝  -->
 
