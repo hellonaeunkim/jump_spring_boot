@@ -1,6 +1,7 @@
 package com.ann.annovation.question;
 
 import com.ann.annovation.answer.Answer;
+import com.ann.annovation.category.Category;
 import com.ann.annovation.comment.Comment;
 import com.ann.annovation.user.SiteUser;
 import jakarta.persistence.*;
@@ -40,5 +41,8 @@ public class Question {
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.REMOVE)
     private List<Comment> commentList;
+
+    @ManyToOne
+    private Category category;
 
 }

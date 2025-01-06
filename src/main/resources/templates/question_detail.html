@@ -235,7 +235,7 @@
         </div>
         <!-- 질문 댓글 작성 -->
         <form th:action="@{|/comment/create/answer/${answer.id}|}" th:object="${commentForm}" method="post"
-              class="my-3">
+              class="my-3" style="display: none">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
             <div th:replace="~{form_errors :: formErrorsFragment}"></div>
             <textarea sec:authorize="isAnonymous()" disabled th:field="*{content}" class="form-control"
@@ -303,27 +303,31 @@
     const comment_elements = document.getElementsByClassName("comment btn");
     Array.from(comment_elements).forEach(function(element) {
         element.addEventListener('click', function() {
-            let commentId;
+            let comment_table;
+            let comment_form;
+            
             if (element.id.startsWith('ans-')) {
-                commentId = 'comment-ans-' + element.id.split('-')[1];
-            } else if (element.id.startsWith('question-')) {
-                commentId = 'comment-question-' + element.id.split('-')[1];
+                // 답변 댓글인 경우
+                comment_table = document.getElementById("comment-" + element.id);
+                comment_form = comment_table.nextElementSibling;
+            } else {
+                // 질문 댓글인 경우
+                comment_table = document.getElementById("comment-" + element.id);
+                comment_form = comment_table.nextElementSibling;
             }
-
-            const comment_table = document.getElementById(commentId);
-
-            if (comment_table) {
-                if (comment_table.style.display === 'none') {
-                    comment_table.style.display = 'block';
-                    element.style.background = 'gray';
-                    element.style.color = 'white';
-                } else {
-                    comment_table.style.display = 'none';
-                    element.style.background = 'white';
-                    element.style.color = 'gray';
-                }
-        }
-    });
-});
+            
+            if (comment_table.style.display === 'none') {
+                comment_table.style.display = 'block';
+                comment_form.style.display = 'block';
+                element.style.background = 'gray';
+                element.style.color = 'white';
+            } else {
+                comment_table.style.display = 'none';
+                comment_form.style.display = 'none';
+                element.style.background = 'white';
+                element.style.color = 'gray';
+            }
+        })
+    })
 </script>
 </html>

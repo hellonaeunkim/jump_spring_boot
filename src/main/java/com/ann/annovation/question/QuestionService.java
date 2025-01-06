@@ -2,6 +2,7 @@ package com.ann.annovation.question;
 
 import com.ann.annovation.DataNotFoundException;
 import com.ann.annovation.answer.Answer;
+import com.ann.annovation.category.Category;
 import com.ann.annovation.user.SiteUser;
 import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
@@ -59,12 +60,13 @@ public class QuestionService {
         }
     }
 
-    public void create(String subject, String content, SiteUser user) {
+    public void create(String subject, String content, Category category, SiteUser siteuser) {
         Question q = new Question();
         q.setSubject(subject);
         q.setContent(content);
+        q.setAuthor(siteuser);
+        q.setCategory(category);
         q.setCreateDate(LocalDateTime.now());
-        q.setAuthor(user);
         this.questionRepository.save(q);
     }
 
@@ -82,5 +84,12 @@ public class QuestionService {
     public void vote(Question question, SiteUser siteUser) {
         question.getVoter().add(siteUser);
         this.questionRepository.save(question);
+    }
+
+    public Page<Question> getCategoryQuestionList(Category category, int page) {
+        List<Sort.Order> sorts = new ArrayList<>();
+        sorts.add(Sort.Order.desc("createDate"));
+        Pageable pageable = PageRequest.of(page, 10, Sort.by(sorts));
+        return this.questionRepository.findByCategory(category, pageable);
     }
 }

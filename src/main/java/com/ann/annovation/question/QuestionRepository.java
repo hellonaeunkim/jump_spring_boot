@@ -1,5 +1,6 @@
 package com.ann.annovation.question;
 
+import com.ann.annovation.category.Category;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -14,6 +15,7 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
     Page<Question> findAll(Pageable pageable);
     // Specification을 사용하여 동적 쿼리를 실행하고, 페이징과 정렬을 결합하여 결과를 반환
     Page<Question> findAll(Specification<Question> spec, Pageable pageable);
+    Page<Question> findByCategory(Category category, Pageable pageable);
 }
 
 // 페이징 (paging) : 입력된 정보나 데이터를 여러 페이지에 나눠 표시하고, 사용자가 페이지를 이동할 수 있게 하는 기능

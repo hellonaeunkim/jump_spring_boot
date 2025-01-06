@@ -1,24 +1,33 @@
 <nav th:fragment="navbarFragment" class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="/">Main</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-          <!--
-          sec:authorize="isAnonymous()": 로그인되지 않은 경우에 해당 요소(로그인 링크)가 표시된다.
-          sec:authorize="isAuthenticated()": 로그인된 경우에 해당 요소(로그아웃 링크)가 표시된다.
-          -->
-          <a class="nav-link" sec:authorize="isAnonymous()" th:href="@{/user/login}">로그인</a>
-          <a class="nav-link" sec:authorize="isAuthenticated()" th:href="@{/user/logout}">로그아웃</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" th:href="@{/user/signup}">회원가입</a>
-        </li>
-      </ul>
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">Main</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <!--
+                    sec:authorize="isAnonymous()": 로그인되지 않은 경우에 해당 요소(로그인 링크)가 표시된다.
+                    sec:authorize="isAuthenticated()": 로그인된 경우에 해당 요소(로그아웃 링크)가 표시된다.
+                    -->
+                    <a class="nav-link" sec:authorize="isAnonymous()" th:href="@{/user/login}">로그인</a>
+                    <a class="nav-link" sec:authorize="isAuthenticated()" th:href="@{/user/logout}">로그아웃</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/user/signup}">회원가입</a>
+                </li>
+            </ul>
+        </div>
     </div>
-  </div>
+    <table class="table">
+        <thead>
+        <tr class="text-center">
+            <th th:each="category, loop : ${category_list}">
+                <a class="nav-link" th:href="|/category/${category.name}|" th:text="${category.name}"></a>
+            </th>
+        </tr>
+        </thead>
+    </table>
 </nav>

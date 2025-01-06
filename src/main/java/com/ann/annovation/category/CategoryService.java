@@ -2,6 +2,7 @@ package com.ann.annovation.category;
 
 import com.ann.annovation.DataNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,7 +21,8 @@ public class CategoryService {
     }
 
     public List<Category> getAll() {
-        return this.categoryRepository.findAll();
+        Sort sort = Sort.by(Sort.Direction.ASC, "id");
+        return this.categoryRepository.findAll(sort);
     }
 
     public Category getCategoryByName(String name) {
