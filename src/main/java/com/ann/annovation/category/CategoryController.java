@@ -25,7 +25,8 @@ public class CategoryController {
     public String contentList(
             Model model,
             @PathVariable("category") String categoryName,
-            @RequestParam(value = "page", defaultValue = "0") int page
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "kw", defaultValue = "") String kw
     ) {
 
         Category category = this.categoryService.getCategoryByName(categoryName);
@@ -35,6 +36,7 @@ public class CategoryController {
         model.addAttribute("category_name", categoryName);
         model.addAttribute("category_list", categoryList);
         model.addAttribute("paging", paging);
+        model.addAttribute("kw", kw);
         return "category_question_list";
     }
 }

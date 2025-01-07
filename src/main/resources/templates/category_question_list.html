@@ -34,7 +34,7 @@
             </td>
             <td><span th:if="${question.author != null}" th:text="${question.author.username}"></span></td>
             <td th:text="${#temporals.format(question.createDate, 'yyyy-MM-dd HH:mm')}"></td>
-            <td th:text="${question.views}"></td>
+            <!--<td th:text="${question.views}"></td>-->
         </tr>
         </tbody>
     </table>

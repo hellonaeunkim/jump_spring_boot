@@ -19,6 +19,11 @@
 
     <!-- 질문 -->
     <h2 class="border-bottom py-2" th:text="${question.subject}"></h2>
+
+    <!--게시글 제목 아래 카테고리 표시-->
+    <a th:if="${question.category != null}" th:href="@{|/category/${question.getCategory().getName()}|}"
+       class="nav-link" style="color: gray" th:text="${question.getCategory().getName()}"></a>
+
     <div class="card my-3">
         <div class="card-body">
 
