@@ -42,4 +42,9 @@ public class UserService {
             throw new DataNotFoundException("Email not found!!");
         }
     }
+
+    public void update(SiteUser user, String newPassword) {
+        user.setPassword(this.passwordEncoder.encode(newPassword));
+        this.userRepository.save(user);
+    }
 }
