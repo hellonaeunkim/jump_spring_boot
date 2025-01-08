@@ -54,6 +54,9 @@ dependencies {
 
     // Markdown
     implementation 'org.commonmark:commonmark:0.21.0'
+
+    // Spring Boot Mail Starter
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
 }
 
 tasks.named('test') {
