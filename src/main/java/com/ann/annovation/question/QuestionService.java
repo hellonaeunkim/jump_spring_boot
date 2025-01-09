@@ -92,4 +92,35 @@ public class QuestionService {
         Pageable pageable = PageRequest.of(page, 10, Sort.by(sorts));
         return this.questionRepository.findByCategory(category, pageable);
     }
+
+    public Page<Question> getListByAuthor(int page, SiteUser siteUser) {
+        List<Sort.Order> sorts = new ArrayList();
+        sorts.add(Sort.Order.desc("createDate"));
+        Pageable pageable = PageRequest.of(page, 5, Sort.by(sorts));
+        return this.questionRepository.findByAuthor(siteUser, pageable);
+    }
+
+    // 특정 사용자가 추천한 질문들을 찾기 위한 Method
+    public Specification<Question> hasVoter(SiteUser siteUser) {
+        // Specification 인터페이스를 구현하는 익명 클래스 생성
+        return new Specification<Question>() {
+            private static final long serialVersionUID = 1L;
+
+            // 실제 검색 조건을 만드는 Method
+            @Override
+            public Predicate toPredicate(Root<Question> q, CriteriaQuery<?> query, CriteriaBuilder cb) {
+                query.distinct(true);
+                // voter 목록에 특정 사용자(siteUser)가 포함되어 있는지 확인
+                return cb.isMember(siteUser, q.get("voter"));
+            }
+        };
+    }
+
+    public Page<Question> getListByVoter(int page, SiteUser siteUser) {
+        List<Sort.Order> sorts = new ArrayList();
+        sorts.add(Sort.Order.desc("createDate"));
+        Pageable pageable = PageRequest.of(page, 5, Sort.by(sorts));
+        Specification<Question> spec = this.hasVoter(siteUser);
+        return this.questionRepository.findAll(spec, pageable);
+    }
 }

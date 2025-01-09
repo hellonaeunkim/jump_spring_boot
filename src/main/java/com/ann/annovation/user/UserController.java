@@ -1,14 +1,20 @@
 package com.ann.annovation.user;
 
 import com.ann.annovation.DataNotFoundException;
+import com.ann.annovation.answer.Answer;
 import com.ann.annovation.answer.AnswerService;
+import com.ann.annovation.comment.Comment;
+import com.ann.annovation.comment.CommentService;
+import com.ann.annovation.question.Question;
 import com.ann.annovation.question.QuestionService;
 import com.ann.annovation.util.PasswordUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -16,6 +22,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.security.Principal;
 
 @RequiredArgsConstructor
 @Controller
@@ -26,6 +34,7 @@ public class UserController {
     private final QuestionService questionService;
     private final AnswerService answerService;
     private final JavaMailSender mailSender;
+    private final CommentService commentService;
 
     @GetMapping("/signup")
     public String signup(UserCreateForm userCreateForm) {
@@ -111,5 +120,32 @@ public class UserController {
             model.addAttribute("error", true);
         }
         return "find_account";
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/profile")
+    public String profile(
+            Model model, Principal principal,
+            @RequestParam(value="question-page", defaultValue="0") int questionPage,
+            @RequestParam(value="ans-page", defaultValue="0") int ansPage,
+            @RequestParam(value="question-vote-page", defaultValue="0") int questionVoterPage,
+            @RequestParam(value="ans-vote-page", defaultValue="0") int ansVoterPage,
+            @RequestParam(value="comment-page", defaultValue="0") int commentPage
+    ) {
+        SiteUser siteUser = this.userService.getUser(principal.getName());
+        Page<Question> wroteQuestions = this.questionService.getListByAuthor(questionPage, siteUser);
+        Page<Answer> wroteAnswers = this.answerService.getListByAuthor(ansPage, siteUser);
+        Page<Question> votedQuestions = this.questionService.getListByVoter(questionVoterPage, siteUser);
+        Page<Answer> votedAnswers = this.answerService.getListByVoter(ansVoterPage, siteUser);
+        Page<Comment> wroteComments = this.commentService.getListByAuthor(commentPage, siteUser);
+
+        model.addAttribute("wrote_question_paging", wroteQuestions);
+        model.addAttribute("wrote_answer_paging", wroteAnswers);
+        model.addAttribute("voted_question_paging", votedQuestions);
+        model.addAttribute("voted_answer_paging", votedAnswers);
+        model.addAttribute("username", siteUser.getUsername());
+        model.addAttribute("userEmail", siteUser.getEmail());
+        model.addAttribute("wrote_comment_paging", wroteComments);
+        return "profile";
     }
 }
