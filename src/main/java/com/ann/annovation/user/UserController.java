@@ -89,13 +89,13 @@ public class UserController {
         try {
 
             // 1. 사용자 조회
-            SiteUser siteUser = this.userService.getUserByEmail(email);
+            SiteUser user = this.userService.getUserByEmail(email);
 
             // 2. 새 비밀번호 생성
             String newPassword = PasswordUtil.getRandomPassword(12);
 
             // 3. 비밀번호 업데이트
-            this.userService.update(siteUser, newPassword);
+            this.userService.update(user, newPassword);
 
             // 4. 이메일 준비
             SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
@@ -103,7 +103,7 @@ public class UserController {
             simpleMailMessage.setSubject("계정 정보입니다.");
             simpleMailMessage.setText(String.format(
                     "%s계정의 비밀번호를 새롭게 초기화 했습니다.\n새 비밀번호는 %s입니다.\n로그인 후 내 정보에서 새로 비밀번호를 지정해주세요.",
-                    siteUser.getUsername(),
+                    user.getUsername(),
                     newPassword
             ));
 
@@ -132,20 +132,56 @@ public class UserController {
             @RequestParam(value="ans-vote-page", defaultValue="0") int ansVoterPage,
             @RequestParam(value="comment-page", defaultValue="0") int commentPage
     ) {
-        SiteUser siteUser = this.userService.getUser(principal.getName());
-        Page<Question> wroteQuestions = this.questionService.getListByAuthor(questionPage, siteUser);
-        Page<Answer> wroteAnswers = this.answerService.getListByAuthor(ansPage, siteUser);
-        Page<Question> votedQuestions = this.questionService.getListByVoter(questionVoterPage, siteUser);
-        Page<Answer> votedAnswers = this.answerService.getListByVoter(ansVoterPage, siteUser);
-        Page<Comment> wroteComments = this.commentService.getListByAuthor(commentPage, siteUser);
+        SiteUser user = this.userService.getUser(principal.getName());
+        Page<Question> wroteQuestions = this.questionService.getListByAuthor(questionPage, user);
+        Page<Answer> wroteAnswers = this.answerService.getListByAuthor(ansPage, user);
+        Page<Question> votedQuestions = this.questionService.getListByVoter(questionVoterPage, user);
+        Page<Answer> votedAnswers = this.answerService.getListByVoter(ansVoterPage, user);
+        Page<Comment> wroteComments = this.commentService.getListByAuthor(commentPage, user);
 
         model.addAttribute("wrote_question_paging", wroteQuestions);
         model.addAttribute("wrote_answer_paging", wroteAnswers);
         model.addAttribute("voted_question_paging", votedQuestions);
         model.addAttribute("voted_answer_paging", votedAnswers);
-        model.addAttribute("username", siteUser.getUsername());
-        model.addAttribute("userEmail", siteUser.getEmail());
+        model.addAttribute("username", user.getUsername());
+        model.addAttribute("userEmail", user.getEmail());
         model.addAttribute("wrote_comment_paging", wroteComments);
         return "profile";
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/change-password")
+    public String changePassword(UserChangePasswordForm userChangePasswordForm) {
+        return "change_password_form";
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/change-password")
+    public String changePassword(
+            @Valid UserChangePasswordForm userChangePasswordForm,
+            BindingResult bindingResult,
+            Principal principal
+    ) {
+
+        if (bindingResult.hasErrors()) {
+            return "change_password_form";
+        }
+
+        String username = principal.getName();
+        SiteUser user = userService.getUser(username);
+
+        if (!userService.validatePassword(user, userChangePasswordForm.getOriginPassword())) {
+            bindingResult.reject("invalidPassword", "유효하지 않은 비밀번호입니다.");
+            return "change_password_form";
+        }
+
+        if (!userChangePasswordForm.getNewPassword1().equals(userChangePasswordForm.getNewPassword2())) {
+            bindingResult.reject("passwordCheckFailed", "비밀번호 확인 실패하였습니다.");
+            return "change_password_form";
+        }
+
+        userService.changePassword(user, userChangePasswordForm.getNewPassword1());
+
+        return "redirect:/user/logout";
     }
 }
