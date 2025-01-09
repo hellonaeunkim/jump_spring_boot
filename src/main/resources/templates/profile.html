@@ -1,0 +1,301 @@
+<html layout:decorate="~{layout}">
+<div layout:fragment="content" class="container my-3">
+    <h2 class="border-bottom py-2">내 정보</h2>
+    <div class="card my-3">
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label">사용자 ID</label>
+                <input type="text" th:value="${username}" class="form-control" readonly>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">이메일</label>
+                <input type="email" th:value="${userEmail}" class="form-control" readonly>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="border-bottom py-2">내 질문</h2>
+    <div class="card my-3">
+        <table class="table">
+            <thead class="table-dark">
+            <tr class="text-center">
+                <th>번호</th>
+                <th style="width:50%">제목</th>
+                <th>글쓴이</th>
+                <th>작성일시</th>
+                <th>조회수</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr class="text-center" th:each="question, loop : ${wrote_question_paging}">
+                <td th:text="${question.id}"></td>
+                <td class="text-start">
+                    <a th:href="@{|/question/detail/${question.id}|}" th:text="${question.subject}"></a>
+                    <span class="text-danger small ms-2"
+                          th:if="${#lists.size(question.answerList) > 0}"
+                          th:text="|[${#lists.size(question.answerList)}]|">
+                        </span>
+                </td>
+                <td><span th:if="${question.author != null}" th:text="${question.author.username}"></span></td>
+                <td th:text="${#temporals.format(question.createDate, 'yyyy-MM-dd HH:mm')}"></td>
+                <!--<td th:text="${question.views}"></td>-->
+            </tr>
+            </tbody>
+        </table>
+        <!-- 페이징 처리 시작 -->
+        <div th:if="${!wrote_question_paging.isEmpty()}">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${!wrote_question_paging.hasPrevious} ? 'disabled'">
+                    <a class="page-link" th:href="@{|?question-page=${wrote_question_paging.number-1}|}"
+                       th:data-page="${wrote_question_paging.number-1}">
+                        <span>이전</span>
+                    </a>
+                </li>
+                <li th:each="page: ${#numbers.sequence(0, wrote_question_paging.totalPages-1)}"
+                    th:if="${page >= wrote_question_paging.number-5 and page <= wrote_question_paging.number+5}"
+                    th:classappend="${page == wrote_question_paging.number} ? 'active'"
+                    class="page-item">
+                    <a th:text="${page}" class="page-link" th:href="@{|?question-page=${page}|}" th:data-page="${page}"></a>
+                </li>
+                <li class="page-item" th:classappend="${!wrote_question_paging.hasNext} ? 'disabled'">
+                    <a class="page-link" th:href="@{|?question-page=${wrote_question_paging.number+1}|}"
+                       th:data-page="${wrote_question_paging.number+1}">
+                        <span>다음</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <h2 class="border-bottom py-2">내 답변</h2>
+    <div class="card my-3">
+        <div class="card my-3" th:each="answer, loop : ${wrote_answer_paging}">
+            <a th:id="|answer_${answer.id}|"></a>
+            <div class="card-body">
+                <div class="card-text" th:utext="${@commonUtil.markdown(answer.content)}"></div>
+                <div class="d-flex justify-content-end">
+                    <div th:if="${answer.modifyDate != null}" class="badge bg-light text-dark p-2 text-start mx-3">
+                        <div class="mb-2">modified at</div>
+                        <div th:text="${#temporals.format(answer.modifyDate, 'yyyy-MM-dd HH:mm')}"></div>
+                    </div>
+                    <div class="badge bg-light text-dark p-2 text-start">
+                        <div class="mb-2">
+                            <span th:if="${answer.author != null}" th:text="${answer.author.username}"></span>
+                        </div>
+                        <div th:text="${#temporals.format(answer.createDate, 'yyyy-MM-dd HH:mm')}"></div>
+                    </div>
+                </div>
+                <div class="my-3">
+                    <a th:href="@{|/question/detail/${answer.question.id}|}" class="btn btn-sm btn-outline-secondary"
+                       th:if="${answer.author != null and #authentication.getPrincipal().getUsername() == answer.author.username}"
+                       th:text="원본질문"></a>
+                    <a href="javascript:void(0);" class="recommend btn btn-sm btn-outline-secondary"
+                       th:data-uri="@{|/answer/vote/${answer.id}|}">
+                        추천
+                        <span class="badge rounded-pill bg-success" th:text="${#lists.size(answer.voter)}"></span>
+                    </a>
+                    <a th:href="@{|/answer/modify/${answer.id}|}" class="btn btn-sm btn-outline-secondary"
+                       sec:authorize="isAuthenticated()"
+                       th:if="${answer.author != null and #authentication.getPrincipal().getUsername() == answer.author.username}"
+                       th:text="수정"></a>
+                    <a href="javascript:void(0);" th:data-uri="@{|/answer/delete/${answer.id}|}"
+                       class="delete btn btn-sm btn-outline-secondary" sec:authorize="isAuthenticated()"
+                       th:if="${answer.author != null and #authentication.getPrincipal().getUsername() == answer.author.username}"
+                       th:text="삭제"></a>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- 답변 페이징 처리 시작 -->
+        <div th:if="${!wrote_answer_paging.isEmpty()}">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${!wrote_answer_paging.hasPrevious} ? 'disabled'">
+                    <a class="page-link" th:href="@{|?ans-page=${wrote_answer_paging.number-1}|}"
+                       th:data-page="${wrote_answer_paging.number-1}">
+                        <span>이전</span>
+                    </a>
+                </li>
+                <li th:each="page: ${#numbers.sequence(0, wrote_answer_paging.totalPages-1)}"
+                    th:if="${page >= wrote_answer_paging.number - 5 and page <= wrote_answer_paging.number+5}"
+                    th:classappend="${page == wrote_answer_paging.number} ? 'active'"
+                    class="page-item">
+                    <a th:text="${page}" class="page-link" th:href="@{|?ans-page=${page}|}"
+                       th:data-page="${page}"></a>
+                </li>
+                <li class="page-item" th:classappend="${!wrote_answer_paging.hasNext()} ? 'disabled'">
+                    <a class="page-link" th:href="@{|?ans-page=${wrote_answer_paging.number+1}|}"
+                       th:data-page="${wrote_answer_paging.number+1}">
+                        <span>다음</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <h2 class="border-bottom py-2">내 댓글</h2>
+    <div class="card my-3">
+        <!-- 댓글 시작 -->
+        <table class="table">
+            <thead class="table-dark">
+            <tr class="text-center">
+                <th style="width:70%">내용</th>
+                <th>글쓴이</th>
+                <th>작성일시</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr class="text-center" th:each="comment, loop : ${wrote_comment_paging}">
+                <td class="text-center">
+                    <a th:href="@{|/question/detail/${comment.question.id}|}" th:text="${comment.content}"></a>
+                </td>
+                <td><span th:if="${comment.author != null}" th:text="${comment.author.username}"></span></td>
+                <td th:text="${#temporals.format(comment.createDate, 'yyyy-MM-dd HH:mm')}"></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- 페이징 처리 시작 -->
+        <div th:if="${!wrote_comment_paging.isEmpty()}">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${!wrote_comment_paging.hasPrevious} ? 'disabled'">
+                    <a class="page-link" th:href="@{|?comment-page=${wrote_comment_paging.number-1}|}"
+                       th:data-page="${wrote_comment_paging.number-1}">
+                        <span>이전</span>
+                    </a>
+                </li>
+                <li th:each="page: ${#numbers.sequence(0, wrote_comment_paging.totalPages-1)}"
+                    th:if="${page >= wrote_comment_paging.number-5 and page <= wrote_comment_paging.number+5}"
+                    th:classappend="${page == wrote_comment_paging.number} ? 'active'"
+                    class="page-item">
+                    <a th:text="${page}" class="page-link" th:href="@{|?comment-page=${page}|}" th:data-page="${page}"></a>
+                </li>
+                <li class="page-item" th:classappend="${!wrote_comment_paging.hasNext} ? 'disabled'">
+                    <a class="page-link" th:href="@{|?comment-page=${wrote_comment_paging.number+1}|}"
+                       th:data-page="${wrote_comment_paging.number+1}">
+                        <span>다음</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <h2 class="border-bottom py-2">추천한 질문</h2>
+    <div class="card my-3">
+        <table class="table">
+            <thead class="table-dark">
+            <tr class="text-center">
+                <th>번호</th>
+                <th style="width:50%">제목</th>
+                <th>글쓴이</th>
+                <th>작성일시</th>
+                <th>조회수</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr class="text-center" th:each="question, loop : ${voted_question_paging}">
+                <td th:text="${question.id}"></td>
+                <td class="text-start">
+                    <a th:href="@{|/question/detail/${question.id}|}" th:text="${question.subject}"></a>
+                    <span class="text-danger small ms-2"
+                          th:if="${#lists.size(question.answerList) > 0}"
+                          th:text="|[${#lists.size(question.answerList)}]|">
+                        </span>
+                </td>
+                <td><span th:if="${question.author != null}" th:text="${question.author.username}"></span></td>
+                <td th:text="${#temporals.format(question.createDate, 'yyyy-MM-dd HH:mm')}"></td>
+                <!--<td th:text="${question.views}"></td>-->
+            </tr>
+            </tbody>
+        </table>
+
+        <!-- 페이징 처리 시작 -->
+        <div th:if="${!voted_question_paging.isEmpty()}">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${!voted_question_paging.hasPrevious} ? 'disabled'">
+                    <a class="page-link" th:href="@{|?question-vote-page=${voted_question_paging.number-1}|}"
+                       th:data-page="${voted_question_paging.number-1}">
+                        <span>이전</span>
+                    </a>
+                </li>
+                <li th:each="page: ${#numbers.sequence(0, voted_question_paging.totalPages-1)}"
+                    th:if="${page >= voted_question_paging.number-5 and page <= voted_question_paging.number+5}"
+                    th:classappend="${page == voted_question_paging.number} ? 'active'"
+                    class="page-item">
+                    <a th:text="${page}" class="page-link" th:href="@{|?question-vote-page=${page}|}" th:data-page="${page}"></a>
+                </li>
+                <li class="page-item" th:classappend="${!voted_question_paging.hasNext} ? 'disabled'">
+                    <a class="page-link" th:href="@{|?question-vote-page=${voted_question_paging.number+1}|}"
+                       th:data-page="${voted_question_paging.number+1}">
+                        <span>다음</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <h2 class="border-bottom py-2">추천한 답변</h2>
+    <div class="card my-3">
+        <div class="card my-3" th:each="answer, loop : ${voted_answer_paging}">
+            <a th:id="|answer_${answer.id}|"></a>
+            <div class="card-body">
+                <div class="card-text" th:utext="${@commonUtil.markdown(answer.content)}"></div>
+                <div class="d-flex justify-content-end">
+                    <div th:if="${answer.modifyDate != null}" class="badge bg-light text-dark p-2 text-start mx-3">
+                        <div class="mb-2">modified at</div>
+                        <div th:text="${#temporals.format(answer.modifyDate, 'yyyy-MM-dd HH:mm')}"></div>
+                    </div>
+                    <div class="badge bg-light text-dark p-2 text-start">
+                        <div class="mb-2">
+                            <span th:if="${answer.author != null}" th:text="${answer.author.username}"></span>
+                        </div>
+                        <div th:text="${#temporals.format(answer.createDate, 'yyyy-MM-dd HH:mm')}"></div>
+                    </div>
+                </div>
+                <div class="my-3">
+                    <a th:href="@{|/question/detail/${answer.question.id}|}" class="btn btn-sm btn-outline-secondary"
+                       th:text="원본질문"></a>
+                    <a href="javascript:void(0);" class="recommend btn btn-sm btn-outline-secondary"
+                       th:data-uri="@{|/answer/vote/${answer.id}|}">
+                        추천
+                        <span class="badge rounded-pill bg-success" th:text="${#lists.size(answer.voter)}"></span>
+                    </a>
+                    <a th:href="@{|/answer/modify/${answer.id}|}" class="btn btn-sm btn-outline-secondary"
+                       sec:authorize="isAuthenticated()"
+                       th:if="${answer.author != null and #authentication.getPrincipal().getUsername() == answer.author.username}"
+                       th:text="수정"></a>
+                    <a href="javascript:void(0);" th:data-uri="@{|/answer/delete/${answer.id}|}"
+                       class="delete btn btn-sm btn-outline-secondary" sec:authorize="isAuthenticated()"
+                       th:if="${answer.author != null and #authentication.getPrincipal().getUsername() == answer.author.username}"
+                       th:text="삭제"></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 답변 페이징 처리 시작 -->
+        <div th:if="${!voted_answer_paging.isEmpty()}">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${!voted_answer_paging.hasPrevious} ? 'disabled'">
+                    <a class="page-link" th:href="@{|?ans-vote-page=${voted_answer_paging.number-1}|}"
+                       th:data-page="${voted_answer_paging.number-1}">
+                        <span>이전</span>
+                    </a>
+                </li>
+                <li th:each="page: ${#numbers.sequence(0, voted_answer_paging.totalPages-1)}"
+                    th:if="${page >= voted_answer_paging.number - 5 and page <= voted_answer_paging.number+5}"
+                    th:classappend="${page == voted_answer_paging.number} ? 'active'"
+                    class="page-item">
+                    <a th:text="${page}" class="page-link" th:href="@{|?ans-vote-page=${page}|}"
+                       th:data-page="${page}"></a>
+                </li>
+                <li class="page-item" th:classappend="${!voted_answer_paging.hasNext()} ? 'disabled'">
+                    <a class="page-link" th:href="@{|?ans-vote-page=${voted_answer_paging.number+1}|}"
+                       th:data-page="${voted_answer_paging.number+1}">
+                        <span>다음</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+</html>
