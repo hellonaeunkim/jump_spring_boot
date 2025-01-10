@@ -4,6 +4,7 @@ import com.ann.annovation.answer.Answer;
 import com.ann.annovation.category.Category;
 import com.ann.annovation.comment.Comment;
 import com.ann.annovation.user.SiteUser;
+import groovyjarjarantlr4.v4.runtime.misc.NotNull;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,4 +46,7 @@ public class Question {
     @ManyToOne
     private Category category;
 
+    @Column(columnDefinition = "integer default 0")
+    @NotNull
+    private Integer views = 0;
 }

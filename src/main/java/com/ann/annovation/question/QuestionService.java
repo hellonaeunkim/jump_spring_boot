@@ -5,6 +5,7 @@ import com.ann.annovation.answer.Answer;
 import com.ann.annovation.category.Category;
 import com.ann.annovation.user.SiteUser;
 import jakarta.persistence.criteria.*;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -134,5 +135,20 @@ public class QuestionService {
         Pageable pageable = PageRequest.of(page, 5, Sort.by(sorts));
         Specification<Question> spec = this.hasVoter(siteUser);
         return this.questionRepository.findAll(spec, pageable);
+    }
+
+    @Transactional
+    public void viewUp(Integer id) {
+        // 1. 질문 조회
+        Optional<Question> oq = this.questionRepository.findById(id);
+        if (oq.isPresent()) {
+            // 2. 질문 객체 가져오기
+            Question question = oq.get();
+            // 3. 조회수 증가
+            question.setViews(question.getViews() + 1);
+            // 4. 영속성 컨텍스트에 의해 DB에 자동 저장
+        } else {
+            throw new DataNotFoundException("question not found");
+        }
     }
 }
