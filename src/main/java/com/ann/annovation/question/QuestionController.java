@@ -1,21 +1,5 @@
 package com.ann.annovation.question;
 
-import java.security.Principal;
-import java.util.List;
-
-import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.server.ResponseStatusException;
-
 import com.ann.annovation.answer.Answer;
 import com.ann.annovation.answer.AnswerForm;
 import com.ann.annovation.answer.AnswerService;
@@ -25,9 +9,19 @@ import com.ann.annovation.comment.CommentForm;
 import com.ann.annovation.comment.CommentService;
 import com.ann.annovation.user.SiteUser;
 import com.ann.annovation.user.UserService;
-
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.security.Principal;
+import java.util.List;
 
 @RequestMapping("/question")
 @RequiredArgsConstructor
@@ -45,9 +39,10 @@ public class QuestionController {
     public String list(
             Model model,
             @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "kw", defaultValue = "") String kw
+            @RequestParam(value = "kw", defaultValue = "") String kw,
+            @RequestParam(value = "sort", defaultValue = "") String sort
     ) {
-        Page<Question> paging = this.questionService.getList(page, kw);
+        Page<Question> paging = this.questionService.getList(page, kw, sort);
         List<Category> categoryList = this.categoryService.getAll();
 
         model.addAttribute("paging", paging);
@@ -55,6 +50,7 @@ public class QuestionController {
         model.addAttribute("kw", kw);
 
         model.addAttribute("category_list", categoryList);
+        model.addAttribute("sort", sort);
 
         // 반환 값으로 "question_list"라는 이름의 뷰를 렌더링하도록 지시
         // 렌더링(Rendering)은 데이터를 사용자가 볼 수 있는 화면으로 변환하는 과정

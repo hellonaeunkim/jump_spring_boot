@@ -20,89 +20,112 @@
         </div>
     </div>
     <!-- 부트스트랩 스타일을 적용한 표(table) -->
-    <h2 class="border-bottom py-2" th:text="전체게시글"></h2>
-    <table class="table">
-        <!-- 테이블 헤더 부분 -->
-        <thead class="table-dark">
-        <tr class="text-center">
-            <!-- 열 헤더 -->
-            <th>번호</th>
-            <th style="width:50%">제목</th>
-            <th>글쓴이</th>
-            <th>작성일시</th>
-        </tr>
-        </thead>
-        <tbody>
-        <!-- 테이블 본문 -->
-        <tr class="text-center" th:each="question, loop : ${paging}">
-            <!--게시물 번호 = 전체 게시물 개수 - (현재 페이지 * 페이지당 게시물 개수) - 나열 인덱스-->
-            <td th:text="${paging.getTotalElements - (paging.number * paging.size) - loop.index}"></td>
-            <!--제목 항목의 값들만 왼쪽 정렬-->
-            <td class="text-start">
-                <a th:href="@{|/question/detail/${question.id}|}" th:text="${question.subject}"></a>
-                <span class="text-danger small ms-2"
-                      th:if="${#lists.size(question.answerList) > 0}"
-                      th:text="${#lists.size(question.answerList)}">
-          </span>
-            </td>
-            <!--author 속성의 값이 null이 아닌 경우만 질문의 글쓴이 표시-->
-            <td><span th:if="${question.author != null}" th:text="${question.author.username}"></span></td>
-            <td th:text="${#temporals.format(question.createDate, 'yyyy-MM-dd HH:mm')}"></td>
-        </tr>
-        </tbody>
-    </table>
-    <!-- 페이징처리 시작 -->
-    <div th:if="${!paging.isEmpty()}">
-        <ul class="pagination justify-content-center">
-            <!--⬇️이전 페이지가 없으면 '이전' 링크를 비활성화-->
-            <li class="page-item" th:classappend="${!paging.hasPrevious} ? 'disabled'">
-                <!--이전 페이지 링크를 생성-->
-                <!--페이지 링크를 클릭하면, JavaScript가 data-page 속성 값을 읽습니다.-->
-                <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number-1}">
-                    <span>이전</span>
-                </a>
-            </li>
-            <!--#numbers.sequence(시작 번호, 끝 번호) : 시작 번호부터 끝 번호까지 정해진 범위만큼 반복-->
-            <!--페이지 번호를 반복해서 생성 (0부터 전체 페이지 개수-1까지)-->
-            <!--현재 페이지 기준으로 좌우 5개씩 페이지 번호가 표시되도록 만든다.-->
-            <!--반복 구간 내에서 해당 페이지가 현재 페이지와 같은 경우 active 클래스를 적용한다.-->
-            <li th:each="page: ${#numbers.sequence(0, paging.totalPages-1)}"
-                th:if="${page >= paging.number-5 and page <= paging.number+5}"
-                th:classappend="${page == paging.number} ? 'active'"
-                class="page-item">
-                <a th:text="${page}" class="page-link" href="javascript:void(0)" th:data-page="${page}"></a>
-            </li>
-            <!--⬇️다음 페이지가 없으면 '다음' 링크를 비활성화-->
-            <li class="page-item" th:classappend="${!paging.hasNext} ? 'disabled'">
-                <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number+1}"> <!--다음 페이지 링크를 생성-->
-                    <span>다음</span>
-                </a>
-            </li>
-        </ul>
+    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+        <h2 th:text="전체게시글"></h2>
+
+        <!--최신질문순, 최신답변순, 최신댓글순 버튼-->
+        <div class="btn-group">
+            <a th:href="@{/question/list}"
+               class="btn btn-outline-secondary btn-sm me-1"
+               th:classappend="${sort == null or sort == ''} ? 'active'">
+                최신질문순
+            </a>
+            <a th:href="@{/question/list(sort='latest')}"
+               class="btn btn-outline-secondary btn-sm me-1"
+               th:classappend="${sort == 'latest'} ? 'active'">
+                최신답변순
+            </a>
+            <a th:href="@{/question/list(sort='comment')}"
+               class="btn btn-outline-secondary btn-sm"
+               th:classappend="${sort == 'comment'} ? 'active'">
+                최신댓글순
+            </a>
+        </div>
     </div>
-    <!-- 페이징처리 끝 -->
-    <!--searchForm 생성-->
-    <form th:action="@{/question/list}" method="get" id="searchForm">
-        <input type="hidden" id="kw" name="kw" th:value="${kw}">
-        <input type="hidden" id="page" name="page" th:value="${paging.number}">
-    </form>
-</div>
-<script layout:fragment="script" type='text/javascript'>
-    // data-page 속성값을 읽어 searchForm의 page 필드에 설정하여 searchForm을 요청
-    const page_elements = document.getElementsByClassName("page-link");
-    Array.from(page_elements).forEach(function(element) {
-        element.addEventListener('click', function() {
-            document.getElementById('page').value = this.dataset.page;
+
+        <table class="table">
+            <!-- 테이블 헤더 부분 -->
+            <thead class="table-dark">
+            <tr class="text-center">
+                <!-- 열 헤더 -->
+                <th>번호</th>
+                <th style="width:50%">제목</th>
+                <th>글쓴이</th>
+                <th>작성일시</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- 테이블 본문 -->
+            <tr class="text-center" th:each="question, loop : ${paging}">
+                <!--게시물 번호 = 전체 게시물 개수 - (현재 페이지 * 페이지당 게시물 개수) - 나열 인덱스-->
+                <td th:text="${paging.getTotalElements - (paging.number * paging.size) - loop.index}"></td>
+                <!--제목 항목의 값들만 왼쪽 정렬-->
+                <td class="text-start">
+                    <a th:href="@{|/question/detail/${question.id}|}" th:text="${question.subject}"></a>
+                    <span class="text-danger small ms-2"
+                          th:if="${#lists.size(question.answerList) > 0}"
+                          th:text="${#lists.size(question.answerList)}">
+          </span>
+                </td>
+                <!--author 속성의 값이 null이 아닌 경우만 질문의 글쓴이 표시-->
+                <td><span th:if="${question.author != null}" th:text="${question.author.username}"></span></td>
+                <td th:text="${#temporals.format(question.createDate, 'yyyy-MM-dd HH:mm')}"></td>
+            </tr>
+            </tbody>
+        </table>
+        <!-- 페이징처리 시작 -->
+        <div th:if="${!paging.isEmpty()}">
+            <ul class="pagination justify-content-center">
+                <!--⬇️이전 페이지가 없으면 '이전' 링크를 비활성화-->
+                <li class="page-item" th:classappend="${!paging.hasPrevious} ? 'disabled'">
+                    <!--이전 페이지 링크를 생성-->
+                    <!--페이지 링크를 클릭하면, JavaScript가 data-page 속성 값을 읽습니다.-->
+                    <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number-1}">
+                        <span>이전</span>
+                    </a>
+                </li>
+                <!--#numbers.sequence(시작 번호, 끝 번호) : 시작 번호부터 끝 번호까지 정해진 범위만큼 반복-->
+                <!--페이지 번호를 반복해서 생성 (0부터 전체 페이지 개수-1까지)-->
+                <!--현재 페이지 기준으로 좌우 5개씩 페이지 번호가 표시되도록 만든다.-->
+                <!--반복 구간 내에서 해당 페이지가 현재 페이지와 같은 경우 active 클래스를 적용한다.-->
+                <li th:each="page: ${#numbers.sequence(0, paging.totalPages-1)}"
+                    th:if="${page >= paging.number-5 and page <= paging.number+5}"
+                    th:classappend="${page == paging.number} ? 'active'"
+                    class="page-item">
+                    <a th:text="${page}" class="page-link" href="javascript:void(0)" th:data-page="${page}"></a>
+                </li>
+                <!--⬇️다음 페이지가 없으면 '다음' 링크를 비활성화-->
+                <li class="page-item" th:classappend="${!paging.hasNext} ? 'disabled'">
+                    <a class="page-link" href="javascript:void(0)" th:data-page="${paging.number+1}">
+                        <!--다음 페이지 링크를 생성-->
+                        <span>다음</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <!-- 페이징처리 끝 -->
+        <!--searchForm 생성-->
+        <form th:action="@{/question/list}" method="get" id="searchForm">
+            <input type="hidden" id="kw" name="kw" th:value="${kw}">
+            <input type="hidden" id="page" name="page" th:value="${paging.number}">
+        </form>
+    </div>
+    <script layout:fragment="script" type='text/javascript'>
+        // data-page 속성값을 읽어 searchForm의 page 필드에 설정하여 searchForm을 요청
+        const page_elements = document.getElementsByClassName("page-link");
+        Array.from(page_elements).forEach(function(element) {
+            element.addEventListener('click', function() {
+                document.getElementById('page').value = this.dataset.page;
+                document.getElementById('searchForm').submit();
+            });
+        });
+
+        // [검색] 버튼을 클릭하면 검색창에 입력된 값을 searchForm의 kw 필드에 설정하여 searchForm을 요청
+        const btn_search = document.getElementById("btn_search");
+        btn_search.addEventListener('click', function() {
+            document.getElementById('kw').value = document.getElementById('search_kw').value;
+            document.getElementById('page').value = 0;  // 검색버튼을 클릭할 경우 0페이지부터 조회한다.
             document.getElementById('searchForm').submit();
         });
-    });
-
-    // [검색] 버튼을 클릭하면 검색창에 입력된 값을 searchForm의 kw 필드에 설정하여 searchForm을 요청
-    const btn_search = document.getElementById("btn_search");
-    btn_search.addEventListener('click', function() {
-        document.getElementById('kw').value = document.getElementById('search_kw').value;
-        document.getElementById('page').value = 0;  // 검색버튼을 클릭할 경우 0페이지부터 조회한다.
-        document.getElementById('searchForm').submit();
-    });
-</script>
+    </script>
 </html>

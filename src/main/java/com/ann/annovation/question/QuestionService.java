@@ -42,9 +42,21 @@ public class QuestionService {
         };
     }
 
-    public Page<Question> getList(int page, String kw) {
+    public Page<Question> getList(int page, String kw, String sort) {
         List<Sort.Order> sorts = new ArrayList<>();
-        sorts.add(Sort.Order.desc("createDate"));
+
+        // 정렬 조건 설정
+        if ("latest".equals(sort)) {
+            // 답변의 최신 작성일시를 기준으로 정렬
+            sorts.add(Sort.Order.desc("answerList.createDate"));
+        } else if ("comment".equals(sort)) {
+            // 댓글의 최신 작성일시를 기준으로 정렬
+            sorts.add(Sort.Order.desc("commentList.createDate"));
+        } else {
+            // 기본 정렬 (질문 작성일시 기준)
+            sorts.add(Sort.Order.desc("createDate"));
+        }
+
         Pageable pageable = PageRequest.of(page, 10, Sort.by(sorts));
         // 검색어를 의미하는 매개변수 kw를 getList 메서드에 추가하고 kw값으로 Specification 객체를 생성하여 findAll 메서드 호출 시 전달했다.
         Specification<Question> spec = search(kw);

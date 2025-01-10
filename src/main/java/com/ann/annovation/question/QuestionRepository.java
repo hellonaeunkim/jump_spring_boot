@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
@@ -18,6 +19,12 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
     Page<Question> findAll(Specification<Question> spec, Pageable pageable);
     Page<Question> findByCategory(Category category, Pageable pageable);
     Page<Question> findByAuthor(SiteUser siteUser, Pageable pageable);
+    // 최신 답변순 정렬을 위한 쿼리 메서드 추가
+    @Query("SELECT DISTINCT q FROM Question q LEFT JOIN q.answerList a ORDER BY a.createDate DESC NULLS LAST")
+    Page<Question> findAllOrderByLatestAnswer(Pageable pageable);
+    // 최신 댓글순 정렬
+    @Query("SELECT DISTINCT q FROM Question q LEFT JOIN q.commentList c ORDER BY c.createDate DESC NULLS LAST")
+    Page<Question> findAllOrderByLatestComment(Pageable pageable);
 }
 
 // 페이징 (paging) : 입력된 정보나 데이터를 여러 페이지에 나눠 표시하고, 사용자가 페이지를 이동할 수 있게 하는 기능
