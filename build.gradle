@@ -57,6 +57,9 @@ dependencies {
 
     // Spring Boot Mail Starter
     implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    // OAuth2
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 }
 
 tasks.named('test') {

@@ -3,6 +3,7 @@ package com.ann.annovation;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -37,8 +38,8 @@ public class SecurityConfig {
              .logout((logout) -> logout
                  .logoutRequestMatcher(new AntPathRequestMatcher("/user/logout")) // 로그아웃 URL
                  .logoutSuccessUrl("/") // 로그아웃 성공 시 이동할 페이지 URL
-                 .invalidateHttpSession(true)); // 로그아웃 시 생성된 사용자 세션 삭제
-
+                 .invalidateHttpSession(true)) // 로그아웃 시 생성된 사용자 세션 삭제
+             .oauth2Login(Customizer.withDefaults());
         return http.build();
     }
     @Bean
