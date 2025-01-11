@@ -134,9 +134,10 @@
         <!--disabled : Anonymous일 경우 textarea를 볼 수는 있지만, 내용을 입력하거나 수정할 수 없도록 설정-->
         <!--sec:authorize="isAnonymous() : 로그아웃 상태-->
         <textarea sec:authorize="isAnonymous()" disabled th:field="*{content}" class="form-control"
-                  rows="10"></textarea>
+                  rows="10" id="content-answer-anonymous"></textarea>
         <!--sec:authorize="isAuthenticated() : 로그인 상태-->
-        <textarea sec:authorize="isAuthenticated()" th:field="*{content}" class="form-control" rows="10"></textarea>
+        <textarea sec:authorize="isAuthenticated()" th:field="*{content}" class="form-control" 
+                  rows="10" id="content-answer"></textarea>
         <input type="submit" value="답변등록" class="btn btn-primary my-2">
     </form>
 
@@ -334,5 +335,14 @@
             }
         })
     })
+     // 마크다운에디터
+    var simplemde = new SimpleMDE({element: document.getElementById("content")});
+
+    // 로그인한 사용자의 답변 작성 폼에만 SimpleMDE 적용
+    if (document.getElementById("content-answer")) {
+        var simplemdeAnswer = new SimpleMDE({ 
+            element: document.getElementById("content-answer") 
+        });
+    }
 </script>
 </html>
